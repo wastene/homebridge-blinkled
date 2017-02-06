@@ -1,0 +1,21 @@
+{
+  "name": "homebridge-blinkled",
+  "description": "Homebridge Plugin to blink LED's with GPIO pins.",
+  "version": "1.0.3",
+  "author": {
+    "name": "wastene",
+    "email": "adrian@a-berisha.de"
+  },
+  "dependencies": {
+    "rpio": "0.9.0"
+  },
+  "engines": {
+    "homebridge": ">=0.2.0",
+    "node": ">=0.8"
+  },
+  "keywords": [
+    "homebridge-plugin",
+    "homebridge",
+    "led"
+  ]
+}
