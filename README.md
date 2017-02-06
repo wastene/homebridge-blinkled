@@ -1,5 +1,6 @@
 homebridge-blinkled
 ===================
+Homebridge-Plugin to blink LED's with GPIO-Pins of the Rasperry Pi.
 
 ## Install
 
