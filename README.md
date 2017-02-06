@@ -35,5 +35,5 @@ config.json sample:
 
 This Plugin use the "rpio" - Module from "jperkin":
 
-https://www.npmjs.com/package/rpio
+https://www.npmjs.com/package/rpio\n
 https://github.com/jperkin/node-rpio
