@@ -34,6 +34,10 @@ config.json sample:
    }
 ]
 ```
+My Homepage:  
+
+http://a-berisha.de
+
 
 This Plugin use the "rpio" - Module from "jperkin":
 
