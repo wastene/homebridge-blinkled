@@ -29,7 +29,8 @@ function BlinkLEDAccessory(log, config) {
   if(this.map != "physical" && this.map != "gpio"){
 	  this.map = "gpio";
   }
-
+  
+ 
   this.blinkT = 0;     //Interval in ms
   this.blinkOn = 0;    //Status of Blink (on/off)
   this.timerid = 0;    //Timer-ID for Blink-Interval
@@ -38,7 +39,7 @@ function BlinkLEDAccessory(log, config) {
   this.differ = this.maxI - this.minI;
   this.blinkT = (this.differ/2) + this.minI;  //Initialize with 50%
 
-  rpio.init({mapping: 'gpio'});
+  rpio.init({mapping: this.map});
   
   this.service = new Service.Lightbulb(this.name);
 
@@ -69,10 +70,10 @@ BlinkLEDAccessory.prototype.setOn = function(on, callback) {
   this.blinkOn = on;
   if(this.blinkOn == 1){
 	if(this.oneTime==0){
- 	   var doCall = function(allPins,bool, time) {
-	      return setInterval(function(){blink(allPins,bool);bool=!bool;}, time); 
+ 	   var doCall = function(allPins,bool, time, blinkState) {
+	      return setInterval(function(){blink(allPins,bool,blinkState);bool=!bool;blinkState++; if(blinkState>=allPins.length){blinkState=0;}}, time); 
            }
-	   this.timerId = doCall(this.pins,false, this.blinkT);
+	   this.timerId = doCall(this.pins,false, this.blinkT, 0);
 	   this.log("Start Interval in setOn");
 	   this.oneTime=1;
 	}
@@ -93,15 +94,15 @@ BlinkLEDAccessory.prototype.setBlink = function(blinkTime, callback){
   this.log("Setting Blink Time to " + this.blinkT);
   
   if(this.blinkOn==1){
-     var doCall = function(allPins,bool, time){
-          return setInterval(function(){ blink(allPins, bool); bool=!bool;}, time);
+     var doCall = function(allPins,bool, time, blinkState){
+          return setInterval(function(){ blink(allPins, bool, blinkState); bool=!bool;blinkState++; if(blinkState>=allPins.length){blinkState=0;} }, time);
      }
      if(this.oneTime==1){
        	  clearInterval(this.timerId);
      }else {
      	  this.oneTime=1;
      }
-	 this.timerId = doCall(this.pins ,false, this.blinkT);
+	 this.timerId = doCall(this.pins ,false, this.blinkT,0);
   }
   callback(null);
 }
@@ -115,11 +116,13 @@ function writeState(pinArr, on){
 	  rpio.write(pinArr[i], on);
 	}
 }
-function blink(pins,  bool){ 
+function blink(pins,  bool, blinkState){ 
   if(bool)
 	  bool = 1;
   else
 	  bool = 0;
-  writeState(pins, bool);
+  writeState(pins, 0);
+  rpio.write(pins[blinkState], 1);
+
 }
 
