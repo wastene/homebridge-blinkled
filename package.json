@@ -1,7 +1,7 @@
 {
   "name": "homebridge-blinkled",
   "description": "Homebridge Plugin to blink LED's with GPIO pins. Type in 1 or more Pins for Leds.",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "author": {
     "name": "wastene",
     "email": "adrian@a-berisha.de"
