@@ -1,7 +1,7 @@
 var rpio = require("rpio");
 var fs = require("fs");
 var Service, Characteristic;
-var path = "/var/homebridge/.pin";
+var pathPinSuf = ".pin";
 
 module.exports = function(homebridge) {
   Service = homebridge.hap.Service;
@@ -13,13 +13,22 @@ function BlinkLEDAccessory(log, config) {
   this.log = log;
   this.config = config;
   this.name = config["name"] || "Blink";
-  this.pin1 = config["pin1"] || 18;
-  this.pin2 = config["pin2"] || 23;
   this.minI = config["minInterval"] || 100;
   this.maxI = config["maxInterval"] || 2000;
-
+  this.map = config["mapping"] || "gpio";
+  this.pins = config["pins"];
+  
+  if(this.pins.length<=0){
+	  throw "No pins are found.";
+  }
+  
   this.minI = parseInt(this.minI);
   this.maxI = parseInt(this.maxI);
+  
+  
+  if(this.map != "physical" && this.map != "gpio"){
+	  this.map = "gpio";
+  }
 
   this.blinkT = 0;     //Interval in ms
   this.blinkOn = 0;    //Status of Blink (on/off)
@@ -43,22 +52,8 @@ function BlinkLEDAccessory(log, config) {
     .on('get', this.getBlink.bind(this))
     .on('set', this.setBlink.bind(this));
 
-  try {
-    this.testOn1 = fs.readFileSync(path+this.pin1);
-  }catch(err){
-    this.log(err);
-    this.testOn1 = 0;
-  }
-  try {
-    this.testOn2 = fs.readFileSync(path+this.pin2);
-  }catch(err){
-    this.log(err);
-    this.testOn2 = 0;
-  }
-  this.testOn1 = parseInt(this.testOn1);
-  this.testOn2 = parseInt(this.testOn2);
-  rpio.open(this.pin1, rpio.OUTPUT, this.testOn1);
-  rpio.open(this.pin2, rpio.OUTPUT, this.testOn2);
+
+  initPins(this.pins);
 
 }
 BlinkLEDAccessory.prototype.getServices = function() {
@@ -74,19 +69,18 @@ BlinkLEDAccessory.prototype.setOn = function(on, callback) {
   this.blinkOn = on;
   if(this.blinkOn == 1){
 	if(this.oneTime==0){
- 	   var doCall = function(j,k,l, time) {
-	      return setInterval(function(){blink(j,k,l);l=!l;}, time); 
+ 	   var doCall = function(allPins,bool, time) {
+	      return setInterval(function(){blink(allPins,bool);bool=!bool;}, time); 
            }
-	   this.timerId = doCall(this.pin1,this.pin2 ,false, this.blinkT);
+	   this.timerId = doCall(this.pins,false, this.blinkT);
 	   this.log("Start Interval in setOn");
 	   this.oneTime=1;
 	}
   }else {
         clearInterval(this.timerId);
-	this.log("clearInterval in setOn");
+		this.log("clearInterval in setOn");
         this.oneTime=0;
-        rpio.write(this.pin1, 0);
-        rpio.write(this.pin2, 0);
+        writeState(this.pins, 0);
   }
   callback(null);
 }
@@ -99,26 +93,33 @@ BlinkLEDAccessory.prototype.setBlink = function(blinkTime, callback){
   this.log("Setting Blink Time to " + this.blinkT);
   
   if(this.blinkOn==1){
-     var doCall = function(j,k,l, time){
-          return setInterval(function(){ blink(j,k, l); l=!l;}, time);
+     var doCall = function(allPins,bool, time){
+          return setInterval(function(){ blink(allPins, bool); bool=!bool;}, time);
      }
      if(this.oneTime==1){
        	  clearInterval(this.timerId);
-     	  this.timerId = doCall(this.pin1,this.pin2,false, this.blinkT);
      }else {
-     	  this.timerId = doCall(this.pin1, this.pin2 ,false, this.blinkT);
      	  this.oneTime=1;
      }
+	 this.timerId = doCall(this.pins ,false, this.blinkT);
   }
   callback(null);
 }
-function blink(pin1, pin2,  bool){
-  if(bool){
-     rpio.write(pin2, 0)
-     rpio.write(pin1, 1); 
-  }else{
-     rpio.write(pin1, 0);
-     rpio.write(pin2, 1);
-  }  
+function initPins(pinArr){
+	for(var i=0; i<pinArr.length; i++){
+	  rpio.open(pinArr[i],rpio.OUTPUT);
+	}
+}
+function writeState(pinArr, on){
+	for(var i=0; i<pinArr.length; i++){
+	  rpio.write(pinArr[i], on);
+	}
+}
+function blink(pins,  bool){ 
+  if(bool)
+	  bool = 1;
+  else
+	  bool = 0;
+  writeState(pins, bool);
 }
 
