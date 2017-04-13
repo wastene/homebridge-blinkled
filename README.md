@@ -27,12 +27,12 @@ config.json sample:
 ```json
 "accessories": [
    {
-		"accessory": "blinkLED",
-		"name": "Blink",
-	    "pins": [18, 19, 20],
-		"minInterval": 100,
-		"maxInterval": 2000,
-		"mapping": "gpio"
+	"accessory": "blinkLED",
+	"name": "Blink",
+	"pins": [18, 19, 20],
+	"minInterval": 100,
+	"maxInterval": 2000,
+	"mapping": "gpio"
    }
 ]
 ```
